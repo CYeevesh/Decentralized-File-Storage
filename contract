@@ -1,0 +1,135 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract DecentralizedFileStorage {
+    // Struct to store file information with permissions mapping
+    struct File {
+        string hash;          // IPFS hash of the file (acts as a unique identifier)
+        address owner;        // Address of the file owner
+        string encryptedKey;  // Encrypted symmetric key for file access
+        mapping(address => bool) permissions; // Mapping of addresses to boolean indicating if they have access
+    }
+
+    // Struct to return simplified file information without permissions mapping
+    struct FileInfo {
+        string hash;          // IPFS hash of the file
+        address owner;        // Address of the file owner
+        string encryptedKey;  // Encrypted symmetric key for file access
+    }
+
+    // Mapping of user address to their list of uploaded files
+    mapping(address => File[]) public userFiles;
+
+    // Event emitted when a new file is uploaded
+    event FileUploaded(address indexed owner, string hash, string encryptedKey);
+
+    // Event emitted when permission is granted to another user
+    event PermissionGranted(address indexed owner, string hash, address indexed user);
+
+    // Event emitted when permission is revoked from a user
+    event PermissionRevoked(address indexed owner, string hash, address indexed user);
+
+    /**
+     * @dev Upload a new file to the storage
+     * @param _hash The IPFS hash of the file
+     * @param _encryptedKey The encrypted key for the file
+     */
+    function uploadFile(string memory _hash, string memory _encryptedKey) public {
+        // Add a new file to the user's list of files
+        File storage newFile = userFiles[msg.sender].push();
+        newFile.hash = _hash;
+        newFile.owner = msg.sender;
+        newFile.encryptedKey = _encryptedKey;
+        emit FileUploaded(msg.sender, _hash, _encryptedKey);
+    }
+
+    /**
+     * @dev Grant permission to another user to view a specific file
+     * @param fileIndex The index of the file in the user's list of files
+     * @param user The address of the user to grant permission to
+     */
+    function grantPermission(uint fileIndex, address user) public {
+        // Ensure the file index is valid
+        require(fileIndex < userFiles[msg.sender].length, "Invalid file index");
+        
+        // Get the file from the user's list
+        File storage file = userFiles[msg.sender][fileIndex];
+        
+        // Ensure the caller is the owner of the file
+        require(file.owner == msg.sender, "Only the owner can grant permission");
+
+        // Grant permission to the specified user
+        file.permissions[user] = true;
+        emit PermissionGranted(msg.sender, file.hash, user);
+    }
+
+    /**
+     * @dev Revoke permission from a user to view a specific file
+     * @param fileIndex The index of the file in the user's list of files
+     * @param user The address of the user to revoke permission from
+     */
+    function revokePermission(uint fileIndex, address user) public {
+        // Ensure the file index is valid
+        require(fileIndex < userFiles[msg.sender].length, "Invalid file index");
+        
+        // Get the file from the user's list
+        File storage file = userFiles[msg.sender][fileIndex];
+        
+        // Ensure the caller is the owner of the file
+        require(file.owner == msg.sender, "Only the owner can revoke permission");
+
+        // Revoke permission from the specified user
+        file.permissions[user] = false;
+        emit PermissionRevoked(msg.sender, file.hash, user);
+    }
+
+    /**
+     * @dev Check if a user has permission to view a specific file
+     * @param owner The address of the file owner
+     * @param fileIndex The index of the file in the owner's list of files
+     * @return bool indicating whether the caller has permission to view the file
+     */
+    function hasPermission(address owner, uint fileIndex) public view returns (bool) {
+        // Ensure the file index is valid
+        require(fileIndex < userFiles[owner].length, "Invalid file index");
+        
+        // Get the file from the owner's list
+        File storage file = userFiles[owner][fileIndex];
+        
+        // Return true if the caller is the owner of the file or if they have been granted permission
+        if (file.owner == msg.sender) {
+            return true;
+        }
+        return file.permissions[msg.sender];
+    }
+
+    /**
+     * @dev Get the files that the caller has permission to view from a specific owner
+     * @param owner The address of the file owner
+     * @return sharedFiles An array of FileInfo structs containing the files the caller can view
+     */
+    function getSharedFiles(address owner) public view returns (FileInfo[] memory) {
+        uint count = 0;
+
+        // Count how many files the caller has permission to view
+        for (uint i = 0; i < userFiles[owner].length; i++) {
+            if (hasPermission(owner, i)) {
+                count++;
+            }
+        }
+
+        // Create an array to store the file info for files the caller can view
+        FileInfo[] memory sharedFiles = new FileInfo[](count);
+        uint j = 0;
+        
+        // Populate the sharedFiles array with files the caller has permission to view
+        for (uint i = 0; i < userFiles[owner].length; i++) {
+            if (hasPermission(owner, i)) {
+                File storage file = userFiles[owner][i];
+                sharedFiles[j] = FileInfo(file.hash, file.owner, file.encryptedKey);
+                j++;
+            }
+        }
+        return sharedFiles;
+    }
+}
