@@ -238,26 +238,18 @@ async function connectWeb3() {
         try {
             await window.ethereum.request({ method: 'eth_requestAccounts' });
             account = (await web3.eth.getAccounts())[0];
-
-            // Fetch the network ID and log it
+            contract = new web3.eth.Contract(contractABI, contractAddress);
+            console.log('Contract initialized:', contract);
+            
             const networkId = await web3.eth.net.getId();
-            console.log('Raw Network ID:', networkId);
-
-            // Parse and log the network ID as an integer
-            const parsedNetworkId = parseInt(networkId, 10);
-            console.log('Parsed Network ID:', parsedNetworkId);
-
-            if (parsedNetworkId === 11155111) { // Check if the network ID is Sepolia
-                console.log('Connected to Sepolia Testnet');
-                contract = new web3.eth.Contract(contractABI, contractAddress);
-                console.log('Contract initialized:', contract);
+            if (networkId !== 11155111) {
+                alert('Please connect to the Sepolia Testnet');
+            } else {
                 // Fetch and display uploaded files
                 await fetchUploadedFiles();
-            } else {
-                alert('Please connect to the Sepolia Testnet');
             }
         } catch (error) {
-            console.error('User denied account access or there is an error:', error);
+            console.error('User denied account access or there is an error', error);
             alert('Please connect your MetaMask wallet.');
         }
     } else {
@@ -270,7 +262,7 @@ async function uploadFile() {
     const fileInput = document.getElementById('fileInput');
     const encryptedKey = document.getElementById('encryptedKey').value;
     const status = document.getElementById('status');
-    const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIyYjdjM2Q2YS1hYWQ1LTRhZmYtODEzNi1hZTA5OGRlNGFjMjAiLCJlbWFpbCI6InllY293bGVzc3VyQHVtYWlsLnV0bS5hYy5tdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIxMWY5YzlkOTg3NmJlNDVjNDQzNiIsInNjb3BlZEtleVNlY3JldCI6IjA0ZjY1ZWMyNDc3NTdiZjA3NjIzNzk1OGMyN2QxOTQ4NmNmOGJmZWFjN2Y0OWJmYzQ4ZTkwNDk1YmExMDcyNzMiLCJleHAiOjE3NTQ0NTkxMzR9.D9CCodBH7YBGRCh_DOJHQQM8y8wrqKYyMpUi2BwTaLY';
+    const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIyYjdjM2Q2YS1hYWQ1LTRhZmYtODEzNi1hZTA5OGRlNGFjMjAiLCJlbWFpbCI6InllY293bGVzc3VyQHVtYWlsLnV0bS5hYy5tdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIxMWY5YzlkOTg3NmJlNDVjNDQzNiIsInNjb3BlZEtleVNlY3JldCI6IjA0ZjY1ZWMyNDc3NTdiZjA3NjIzNzk1OGMyN2QxOTQ4NmNmOGJmZWFjN2Y0OWJmYzQ4ZTkwNDk1YmExMDcyNzMiLCJleHAiOjE3NTQ0NTkxMzR9.D9CCodBH7YBGRCh_DOJHQQM8y8wrqKYyMpUi2BwTaLY'; // Replace with your Pinata JWT token
 
     if (fileInput.files.length === 0) {
         status.textContent = 'Please select a file.';
@@ -288,7 +280,7 @@ async function uploadFile() {
         const result = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${jwtToken}`, // Replace with your Pinata JWT token
+                'Authorization': `Bearer ${jwtToken}`, 
             },
             body: formData
         });
@@ -303,6 +295,9 @@ async function uploadFile() {
         if (contract.methods.uploadFile) {
             await contract.methods.uploadFile(ipfsHash, encryptedKey).send({ from: account });
             status.textContent = 'IPFS hash stored successfully on the blockchain!';
+            
+            // Refresh the file list after uploading
+            await fetchUploadedFiles();
         } else {
             console.error('uploadFile method not found in contract');
             status.textContent = 'uploadFile method not found in contract';
