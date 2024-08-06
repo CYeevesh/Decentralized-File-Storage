@@ -247,6 +247,7 @@ async function connectWeb3() {
                 alert('Please connect to the Sepolia Testnet');
             } else {
                 // Fetch and display uploaded files
+                console.log('Fetching uploaded files...');
                 await fetchUploadedFiles();
             }
         } catch (error) {
@@ -298,6 +299,7 @@ async function uploadFile() {
             status.textContent = 'IPFS hash stored successfully on the blockchain!';
             
             // Refresh the file list after uploading
+            console.log('Fetching uploaded files after upload...');
             await fetchUploadedFiles();
         } else {
             console.error('uploadFile method not found in contract');
@@ -315,8 +317,13 @@ async function fetchUploadedFiles() {
     filesTableBody.innerHTML = ''; // Clear previous entries
 
     try {
+        console.log('Calling getSharedFiles with account:', account);
         const files = await contract.methods.getSharedFiles(account).call();
         console.log('Fetched files:', files);
+
+        if (files.length === 0) {
+            console.log('No files found for this user.');
+        }
 
         files.forEach((file, index) => {
             const row = filesTableBody.insertRow();
@@ -363,8 +370,7 @@ async function grantPermission() {
 
 // Initialize web3 and attach the event listener
 window.onload = async function () {
-    await connectWeb3();
+    document.getElementById('connectButton').onclick = connectWeb3;
     document.getElementById('uploadButton').onclick = uploadFile;
     document.getElementById('grantPermissionButton').onclick = grantPermission;
-    document.getElementById('connectButton').onclick = connectWeb3;
 };
