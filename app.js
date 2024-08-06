@@ -130,36 +130,6 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "getAccessibleFiles",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "hash",
-						"type": "string"
-					},
-					{
-						"internalType": "address",
-						"name": "owner",
-						"type": "address"
-					},
-					{
-						"internalType": "string",
-						"name": "encryptedKey",
-						"type": "string"
-					}
-				],
-				"internalType": "struct DecentralizedFileStorage.FileInfo[]",
-				"name": "",
-				"type": "tuple[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -232,6 +202,41 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "getAllUsersWithSharedFiles",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "hash",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "encryptedKey",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "sharedWith",
+						"type": "address"
+					}
+				],
+				"internalType": "struct DecentralizedFileStorage.SharedFileInfo[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -291,7 +296,7 @@
 	}
 ];
 
-        const contractAddress = '0x62f17310640a9Ba251aED85B16C112DFcb82b7B6';
+        const contractAddress = '0x9326A57a0291A6340Af14D9d997B952F1e209b4D';
 
         // Web3 setup
 let web3;
