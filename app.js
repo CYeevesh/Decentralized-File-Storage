@@ -311,8 +311,36 @@ async function uploadFile() {
     }
 }
 
+// Grant permission to another user to access a file
+async function grantPermission() {
+    const fileIndex = document.getElementById('fileIndex').value;
+    const userAddress = document.getElementById('userAddress').value;
+    const permissionStatus = document.getElementById('permissionStatus');
+
+    if (!fileIndex || !userAddress) {
+        permissionStatus.textContent = 'Please provide both file index and user address.';
+        return;
+    }
+
+    try {
+        permissionStatus.textContent = 'Granting permission...';
+
+        if (contract.methods.grantPermission) {
+            await contract.methods.grantPermission(fileIndex, userAddress).send({ from: account });
+            permissionStatus.textContent = 'Permission granted successfully!';
+        } else {
+            console.error('grantPermission method not found in contract');
+            permissionStatus.textContent = 'grantPermission method not found in contract';
+        }
+    } catch (error) {
+        console.error(error);
+        permissionStatus.textContent = 'An error occurred. Check console for details.';
+    }
+}
+
 // Initialize web3 and attach the event listener
 window.onload = async function () {
     await connectWeb3();
     document.getElementById('uploadButton').onclick = uploadFile;
+    document.getElementById('grantPermissionButton').onclick = grantPermission;
 };
