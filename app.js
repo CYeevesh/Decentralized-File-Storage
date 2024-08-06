@@ -419,28 +419,36 @@ async function fetchSharedFiles() {
 
     try {
         console.log('Calling getAllSharedFiles with account:', account);
-        const files = await contract.methods.getAllSharedFiles(account).call();
+        const files = await contract.methods.getAllSharedFiles(account).call(); // Fetch files shared with your account
         console.log('Fetched files:', files);
 
         if (files.length === 0) {
             console.log('No files found for this user.');
-        }
-
-        files.forEach((file, index) => {
             const row = filesTableBody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.textContent = 'No files have been shared with you.';
+        } else {
+            files.forEach((file, index) => {
+                const row = filesTableBody.insertRow();
 
-            const cellIndex = row.insertCell(0);
-            const cellHash = row.insertCell(1);
-            const cellOwner = row.insertCell(2);
-            const cellKey = row.insertCell(3);
+                const cellIndex = row.insertCell(0);
+                const cellHash = row.insertCell(1);
+                const cellOwner = row.insertCell(2);
+                const cellKey = row.insertCell(3);
 
-            cellIndex.textContent = index;
-            cellHash.textContent = file.hash;
-            cellOwner.textContent = file.owner;
-            cellKey.textContent = file.encryptedKey;
-        });
+                cellIndex.textContent = index + 1;
+                cellHash.textContent = file.hash;
+                cellOwner.textContent = file.owner;
+                cellKey.textContent = file.encryptedKey;
+            });
+        }
     } catch (error) {
         console.error('Error fetching shared files:', error);
+        const row = filesTableBody.insertRow();
+        const cell = row.insertCell(0);
+        cell.colSpan = 4;
+        cell.textContent = 'Error fetching files.';
     }
 }
 
