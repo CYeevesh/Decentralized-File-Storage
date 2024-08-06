@@ -238,25 +238,19 @@ async function connectWeb3() {
         try {
             await window.ethereum.request({ method: 'eth_requestAccounts' });
             account = (await web3.eth.getAccounts())[0];
-
-            // Fetch the network ID
-            const networkId = await web3.eth.net.getId();
-            console.log('Raw Network ID:', networkId);
+            contract = new web3.eth.Contract(contractABI, contractAddress);
+            console.log('Contract initialized:', contract);
             
-            // Ensure it's treated as a number
-            const parsedNetworkId = Number(networkId);
-            console.log('Parsed Network ID:', parsedNetworkId);
-
-            if (parsedNetworkId === 11155111) { // Check if the network ID is Sepolia
-                console.log('Connected to Sepolia Testnet');
-                contract = new web3.eth.Contract(contractABI, contractAddress);
-                console.log('Contract initialized:', contract);
-                await fetchUploadedFiles();// Fetch and display uploaded files
-            } else {
+            const networkId = await web3.eth.net.getId();
+            console.log(`Connected Network ID: ${networkId}`);
+            if (networkId !== 11155111) {
                 alert('Please connect to the Sepolia Testnet');
+            } else {
+                // Fetch and display uploaded files
+                await fetchUploadedFiles();
             }
         } catch (error) {
-            console.error('User denied account access or there is an error:', error);
+            console.error('User denied account access or there is an error', error);
             alert('Please connect your MetaMask wallet.');
         }
     } else {
@@ -322,6 +316,7 @@ async function fetchUploadedFiles() {
 
     try {
         const files = await contract.methods.getSharedFiles(account).call();
+        console.log('Fetched files:', files);
 
         files.forEach((file, index) => {
             const row = filesTableBody.insertRow();
@@ -371,4 +366,5 @@ window.onload = async function () {
     await connectWeb3();
     document.getElementById('uploadButton').onclick = uploadFile;
     document.getElementById('grantPermissionButton').onclick = grantPermission;
+    document.getElementById('connectButton').onclick = connectWeb3;
 };
