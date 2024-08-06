@@ -311,6 +311,30 @@ async function uploadFile() {
     }
 }
 
+// Fetch and display the uploaded files for the user
+async function fetchUploadedFiles() {
+    const filesTableBody = document.getElementById('filesTable').getElementsByTagName('tbody')[0];
+    filesTableBody.innerHTML = ''; // Clear previous entries
+
+    try {
+        const files = await contract.methods.getSharedFiles(account).call();
+
+        files.forEach((file, index) => {
+            const row = filesTableBody.insertRow();
+
+            const cellIndex = row.insertCell(0);
+            const cellHash = row.insertCell(1);
+            const cellKey = row.insertCell(2);
+
+            cellIndex.textContent = index;
+            cellHash.textContent = file.hash;
+            cellKey.textContent = file.encryptedKey;
+        });
+    } catch (error) {
+        console.error('Error fetching uploaded files:', error);
+    }
+}
+
 // Grant permission to another user to access a file
 async function grantPermission() {
     const fileIndex = document.getElementById('fileIndex').value;
