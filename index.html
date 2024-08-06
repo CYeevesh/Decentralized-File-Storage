@@ -16,6 +16,21 @@
         <p id="status"></p>
     </div>
     <div>
+        <h2>Uploaded Files</h2>
+        <table id="filesTable">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>IPFS Hash</th>
+                    <th>Encrypted Key</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Files will be appended here -->
+            </tbody>
+        </table>
+    </div>
+    <div>
         <input type="number" id="fileIndex" placeholder="File Index">
         <input type="text" id="userAddress" placeholder="User Address">
         <button id="grantPermissionButton">Grant Permission</button>
