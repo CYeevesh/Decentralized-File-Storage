@@ -268,35 +268,35 @@
         let contract;
         let account;
 
-        async function connectWeb3() {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    account = (await web3.eth.getAccounts())[0];
-                    contract = new web3.eth.Contract(contractABI, contractAddress);
-                    console.log('Contract initialized:', contract);
+       async function connectWeb3() {
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            account = (await web3.eth.getAccounts())[0];
+            contract = new web3.eth.Contract(contractABI, contractAddress);
+            console.log('Contract initialized:', contract);
 
-                    const networkId = await web3.eth.net.getId();
-                    console.log(`Connected Network ID: ${networkId}`);
-                    // Verify if the network is Sepolia Testnet
-                    if (networkId !== 11155111) {
-                        alert('Please connect to the Sepolia Testnet');
-                        console.log('Currently connected to Network ID:', networkId);
-			await fetchUploadedFiles();
-                    } else {
-                        // Fetch and display uploaded files
-                        console.log('Fetching uploaded files...');
-                        await fetchUploadedFiles();
-                    }
-                } catch (error) {
-                    console.error('User denied account access or there is an error', error);
-                    alert('Please connect your MetaMask wallet.');
-                }
+            const networkId = await web3.eth.net.getId();
+            console.log(`Connected Network ID: ${networkId}`);
+            
+            // Verify if the network is Sepolia Testnet
+            if (parseInt(networkId, 10) !== 11155111) {
+                alert('Please connect to the Sepolia Testnet');
+                console.log('Currently connected to Network ID:', networkId);
             } else {
-                alert('Please install MetaMask!');
+                // Fetch and display uploaded files
+                console.log('Fetching uploaded files...');
+                await fetchUploadedFiles();
             }
+        } catch (error) {
+            console.error('User denied account access or there is an error', error);
+            alert('Please connect your MetaMask wallet.');
         }
+    } else {
+        alert('Please install MetaMask!');
+    }
+}
 
         // Upload file to Pinata and store the hash in the smart contract
         async function uploadFile() {
