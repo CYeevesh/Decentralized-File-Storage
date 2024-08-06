@@ -1,5 +1,5 @@
 // Your contract ABI and address
-const contractABI = [
+        const contractABI = [
 	{
 		"anonymous": false,
 		"inputs": [
@@ -169,7 +169,7 @@ const contractABI = [
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "user",
+				"name": "_user",
 				"type": "address"
 			}
 		],
@@ -261,9 +261,9 @@ const contractABI = [
 	}
 ];
 
-const contractAddress = '0x29eB9bF346eE5c0e8D43a5eC111caC59A98B62CC';
+        const contractAddress = '0x95E37db3733EDaCFC2883D95393574BE9930E17e';
 
-// Web3 setup
+        // Web3 setup
         let web3;
         let contract;
         let account;
