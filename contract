@@ -103,33 +103,65 @@ contract DecentralizedFileStorage {
         return file.permissions[msg.sender];
     }
 
+
     /**
-     * @dev Get the files that the caller has permission to view from a specific owner
-     * @param owner The address of the file owner
-     * @return sharedFiles An array of FileInfo structs containing the files the caller can view
+     * @dev Get all files a user has access to
+     * @param user The address of the user
+     * @return accessibleFiles An array of FileInfo structs containing the files the user can access
      */
-    function getSharedFiles(address owner) public view returns (FileInfo[] memory) {
+    function getAllUserFiles(address user) public view returns (FileInfo[] memory) {
         uint count = 0;
 
-        // Count how many files the caller has permission to view
-        for (uint i = 0; i < userFiles[owner].length; i++) {
-            if (hasPermission(owner, i)) {
+        // Count how many files the user has permission to view
+        for (uint i = 0; i < userFiles[user].length; i++) {
+            if (hasPermission(user, i)) {
                 count++;
             }
         }
 
-        // Create an array to store the file info for files the caller can view
-        FileInfo[] memory sharedFiles = new FileInfo[](count);
+        // Create an array to store the file info for files the user can access
+        FileInfo[] memory accessibleFiles = new FileInfo[](count);
         uint j = 0;
         
-        // Populate the sharedFiles array with files the caller has permission to view
-        for (uint i = 0; i < userFiles[owner].length; i++) {
-            if (hasPermission(owner, i)) {
-                File storage file = userFiles[owner][i];
+        // Populate the accessibleFiles array with files the user can access
+        for (uint i = 0; i < userFiles[user].length; i++) {
+            if (hasPermission(user, i)) {
+                File storage file = userFiles[user][i];
+                accessibleFiles[j] = FileInfo(file.hash, file.owner, file.encryptedKey);
+                j++;
+            }
+        }
+        return accessibleFiles;
+    }
+
+    /**
+     * @dev Get all files that have been shared with a specific user
+     * @param user The address of the user
+     * @return sharedFiles An array of FileInfo structs containing the files that have been shared with the user
+     */
+    function getAllSharedFiles(address user) public view returns (FileInfo[] memory) {
+        uint count = 0;
+
+        // Count how many files the user has permission to view
+        for (uint i = 0; i < userFiles[msg.sender].length; i++) {
+            if (userFiles[msg.sender][i].permissions[user]) {
+                count++;
+            }
+        }
+
+        // Create an array to store the file info for files the user can view
+        FileInfo[] memory sharedFiles = new FileInfo[](count);
+        uint j = 0;
+
+        // Populate the sharedFiles array with files the user has permission to view
+        for (uint i = 0; i < userFiles[msg.sender].length; i++) {
+            if (userFiles[msg.sender][i].permissions[user]) {
+                File storage file = userFiles[msg.sender][i];
                 sharedFiles[j] = FileInfo(file.hash, file.owner, file.encryptedKey);
                 j++;
             }
         }
         return sharedFiles;
     }
+    
 }
