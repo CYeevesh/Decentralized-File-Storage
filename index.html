@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Decentralized File Storage</title>
-    </head>
-    <body>
-        <h1>Decentralized File Storage</h1>
-        <p>Select a file to upload to IPFS:</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decentralized File Storage</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="app.js"></script>
+</head>
+<body>
+    <h1>Decentralized File Storage</h1>
+    <div>
         <input type="file" id="fileInput">
-        <br><br>
-        <input type="text" id="encryptedKey" placeholder="Enter your encrypted key">
-        <br><br>
-        <button id="uploadButton">Upload File and Store Hash</button>
-
+        <input type="text" id="encryptedKey" placeholder="Encrypted Key">
+        <button id="uploadButton">Upload File</button>
         <p id="status"></p>
-
-        <!-- Web3.js and IPFS client library -->
-        <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/ipfs-http-client@58.0.0/dist/index.min.js"></script>
-        <script src="app.js"></script>
-    </body>
+    </div>
+    <div>
+        <input type="number" id="fileIndex" placeholder="File Index">
+        <input type="text" id="userAddress" placeholder="User Address">
+        <button id="grantPermissionButton">Grant Permission</button>
+        <p id="permissionStatus"></p>
+    </div>
+</body>
 </html>
