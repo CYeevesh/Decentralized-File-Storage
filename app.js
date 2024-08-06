@@ -130,6 +130,36 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "getAccessibleFiles",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "hash",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "encryptedKey",
+						"type": "string"
+					}
+				],
+				"internalType": "struct DecentralizedFileStorage.FileInfo[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -261,14 +291,14 @@
 	}
 ];
 
-        const contractAddress = '0x95E37db3733EDaCFC2883D95393574BE9930E17e';
+        const contractAddress = '0x62f17310640a9Ba251aED85B16C112DFcb82b7B6';
 
         // Web3 setup
-        let web3;
-        let contract;
-        let account;
+let web3;
+let contract;
+let account;
 
-       async function connectWeb3() {
+async function connectWeb3() {
     if (window.ethereum) {
         web3 = new Web3(window.ethereum);
         try {
@@ -279,16 +309,17 @@
 
             const networkId = await web3.eth.net.getId();
             console.log(`Connected Network ID: ${networkId}`);
-            
+
             // Verify if the network is Sepolia Testnet
             if (parseInt(networkId, 10) !== 11155111) {
                 alert('Please connect to the Sepolia Testnet');
                 console.log('Currently connected to Network ID:', networkId);
             } else {
-                // Fetch and display uploaded files
+                // Fetch and display uploaded and shared files
                 console.log('Fetching uploaded files...');
                 await fetchUploadedFiles();
-		await fetchSharedFiles();
+                console.log('Fetching shared files...');
+                await fetchSharedFiles();
             }
         } catch (error) {
             console.error('User denied account access or there is an error', error);
@@ -299,167 +330,150 @@
     }
 }
 
-        // Upload file to Pinata and store the hash in the smart contract
-        async function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const encryptedKey = document.getElementById('encryptedKey').value;
-            const status = document.getElementById('status');
-            const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIyYjdjM2Q2YS1hYWQ1LTRhZmYtODEzNi1hZTA5OGRlNGFjMjAiLCJlbWFpbCI6InllY293bGVzc3VyQHVtYWlsLnV0bS5hYy5tdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIxMWY5YzlkOTg3NmJlNDVjNDQzNiIsInNjb3BlZEtleVNlY3JldCI6IjA0ZjY1ZWMyNDc3NTdiZjA3NjIzNzk1OGMyN2QxOTQ4NmNmOGJmZWFjN2Y0OWJmYzQ4ZTkwNDk1YmExMDcyNzMiLCJleHAiOjE3NTQ0NTkxMzR9.D9CCodBH7YBGRCh_DOJHQQM8y8wrqKYyMpUi2BwTaLY'; // Replace with your Pinata JWT token
+// Upload file to Pinata and store the hash in the smart contract
+async function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const encryptedKey = document.getElementById('encryptedKey').value;
+    const status = document.getElementById('status');
+    const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIyYjdjM2Q2YS1hYWQ1LTRhZmYtODEzNi1hZTA5OGRlNGFjMjAiLCJlbWFpbCI6InllY293bGVzc3VyQHVtYWlsLnV0bS5hYy5tdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIxMWY5YzlkOTg3NmJlNDVjNDQzNiIsInNjb3BlZEtleVNlY3JldCI6IjA0ZjY1ZWMyNDc3NTdiZjA3NjIzNzk1OGMyN2QxOTQ4NmNmOGJmZWFjN2Y0OWJmYzQ4ZTkwNDk1YmExMDcyNzMiLCJleHAiOjE3NTQ0NTkxMzR9.D9CCodBH7YBGRCh_DOJHQQM8y8wrqKYyMpUi2BwTaLY'; // Replace with your Pinata JWT token
 
-            if (fileInput.files.length === 0) {
-                status.textContent = 'Please select a file.';
-                return;
-            }
+    if (fileInput.files.length === 0) {
+        status.textContent = 'Please select a file.';
+        return;
+    }
 
-            const file = fileInput.files[0];
-            const formData = new FormData();
-            formData.append('file', file);
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
 
-            try {
-                // Upload file to Pinata
-                status.textContent = 'Uploading to Pinata...';
-
-                const result = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${jwtToken}`, 
-                    },
-                    body: formData
-                });
-
-                const response = await result.json();
-                const ipfsHash = response.IpfsHash;
-                status.textContent = `File uploaded to IPFS with hash: ${ipfsHash}`;
-
-                // Store the IPFS hash in the smart contract
-                status.textContent = 'Storing IPFS hash in the smart contract...';
-
-                if (contract.methods.uploadFile) {
-                    await contract.methods.uploadFile(ipfsHash, encryptedKey).send({ from: account });
-                    status.textContent = 'IPFS hash stored successfully on the blockchain!';
-                    
-                    // Refresh the file list after uploading
-                    console.log('Fetching uploaded files after upload...');
-                    await fetchUploadedFiles();
-                } else {
-                    console.error('uploadFile method not found in contract');
-                    status.textContent = 'uploadFile method not found in contract';
-                }
-            } catch (error) {
-                console.error(error);
-                status.textContent = 'An error occurred. Check console for details.';
-            }
-        }
-
-        // Fetch and display the uploaded files for the user
-        async function fetchUploadedFiles() {
-            const filesTableBody = document.getElementById('filesTable').getElementsByTagName('tbody')[0];
-            filesTableBody.innerHTML = ''; // Clear previous entries
-
-            try {
-                console.log('Calling getAllUserFiles with account:', account);
-                const files = await contract.methods.getAllUserFiles(account).call();
-                console.log('Fetched files:', files);
-
-                if (files.length === 0) {
-                    console.log('No files found for this user.');
-                }
-
-                files.forEach((file, index) => {
-                    const row = filesTableBody.insertRow();
-
-                    const cellIndex = row.insertCell(0);
-                    const cellHash = row.insertCell(1);
-                    const cellKey = row.insertCell(2);
-
-                    cellIndex.textContent = index;
-                    cellHash.textContent = file.hash;
-                    cellKey.textContent = file.encryptedKey;
-                });
-            } catch (error) {
-                console.error('Error fetching uploaded files:', error);
-            }
-        }
-
-async function fetchSharedFiles_old() {
     try {
-        const sharedFiles = await contract.methods.getAllSharedFiles(account).call({ from: account });
-        console.log('Fetched shared files:', sharedFiles);
+        // Upload file to Pinata
+        status.textContent = 'Uploading to Pinata...';
 
-        const tableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
-        tableBody.innerHTML = '';
+        const result = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`, 
+            },
+            body: formData
+        });
 
-        sharedFiles.forEach((file, index) => {
-            const row = tableBody.insertRow();
-            row.insertCell(0).textContent = index;
-            row.insertCell(1).textContent = file.hash;
-            row.insertCell(2).textContent = file.owner;
-            row.insertCell(3).textContent = file.encryptedKey;
+        const response = await result.json();
+        const ipfsHash = response.IpfsHash;
+        status.textContent = `File uploaded to IPFS with hash: ${ipfsHash}`;
+
+        // Store the IPFS hash in the smart contract
+        status.textContent = 'Storing IPFS hash in the smart contract...';
+
+        if (contract.methods.uploadFile) {
+            await contract.methods.uploadFile(ipfsHash, encryptedKey).send({ from: account });
+            status.textContent = 'IPFS hash stored successfully on the blockchain!';
+            
+            // Refresh the file list after uploading
+            console.log('Fetching uploaded files after upload...');
+            await fetchUploadedFiles();
+        } else {
+            console.error('uploadFile method not found in contract');
+            status.textContent = 'uploadFile method not found in contract';
+        }
+    } catch (error) {
+        console.error(error);
+        status.textContent = 'An error occurred. Check console for details.';
+    }
+}
+
+// Fetch and display the uploaded files for the user
+async function fetchUploadedFiles() {
+    const filesTableBody = document.getElementById('filesTable').getElementsByTagName('tbody')[0];
+    filesTableBody.innerHTML = ''; // Clear previous entries
+
+    try {
+        console.log('Calling getAllUserFiles with account:', account);
+        const files = await contract.methods.getAllUserFiles(account).call();
+        console.log('Fetched files:', files);
+
+        if (files.length === 0) {
+            console.log('No files found for this user.');
+        }
+
+        files.forEach((file, index) => {
+            const row = filesTableBody.insertRow();
+
+            const cellIndex = row.insertCell(0);
+            const cellHash = row.insertCell(1);
+            const cellKey = row.insertCell(2);
+
+            cellIndex.textContent = index;
+            cellHash.textContent = file.hash;
+            cellKey.textContent = file.encryptedKey;
+        });
+    } catch (error) {
+        console.error('Error fetching uploaded files:', error);
+    }
+}
+
+// Fetch and display the shared files for the user
+async function fetchSharedFiles() {
+    const filesTableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
+    filesTableBody.innerHTML = ''; // Clear previous entries
+
+    try {
+        console.log('Calling getAllSharedFiles with account:', account);
+        const files = await contract.methods.getAllSharedFiles(account).call();
+        console.log('Fetched files:', files);
+
+        if (files.length === 0) {
+            console.log('No files found for this user.');
+        }
+
+        files.forEach((file, index) => {
+            const row = filesTableBody.insertRow();
+
+            const cellIndex = row.insertCell(0);
+            const cellHash = row.insertCell(1);
+            const cellOwner = row.insertCell(2);
+            const cellKey = row.insertCell(3);
+
+            cellIndex.textContent = index;
+            cellHash.textContent = file.hash;
+            cellOwner.textContent = file.owner;
+            cellKey.textContent = file.encryptedKey;
         });
     } catch (error) {
         console.error('Error fetching shared files:', error);
     }
 }
 
-async function fetchSharedFiles() {
-            const filesTableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
-            filesTableBody.innerHTML = ''; // Clear previous entries
+// Grant permission to another user to access a file
+async function grantPermission() {
+    const fileIndex = document.getElementById('fileIndex').value;
+    const userAddress = document.getElementById('userAddress').value;
+    const permissionStatus = document.getElementById('permissionStatus');
 
-            try {
-                console.log('Calling getAllSharedFiles with account:', account);
-                const files = await contract.methods.getAllSharedFiles(account).call();
-                console.log('Fetched files:', files);
+    if (!fileIndex || !userAddress) {
+        permissionStatus.textContent = 'Please provide both file index and user address.';
+        return;
+    }
 
-                if (files.length === 0) {
-                    console.log('No files found for this user.');
-                }
+    try {
+        permissionStatus.textContent = 'Granting permission...';
 
-                files.forEach((file, index) => {
-                    const row = filesTableBody.insertRow();
-
-                    const cellIndex = row.insertCell(0);
-                    const cellHash = row.insertCell(1);
-                    const cellKey = row.insertCell(2);
-
-                    cellIndex.textContent = index;
-                    cellHash.textContent = file.hash;
-                    cellKey.textContent = file.encryptedKey;
-                });
-            } catch (error) {
-                console.error('Error fetching uploaded files:', error);
-            }
-        }
-
-        // Grant permission to another user to access a file
-        async function grantPermission() {
-            const fileIndex = document.getElementById('fileIndex').value;
-            const userAddress = document.getElementById('userAddress').value;
-            const permissionStatus = document.getElementById('permissionStatus');
-
-            if (!fileIndex || !userAddress) {
-                permissionStatus.textContent = 'Please provide both file index and user address.';
-                return;
-            }
-
-            try {
-                permissionStatus.textContent = 'Granting permission...';
-
-                if (contract.methods.grantPermission) {
-                    await contract.methods.grantPermission(fileIndex, userAddress).send({ from: account });
-                    permissionStatus.textContent = 'Permission granted successfully!';
-                } else {
-                    console.error('grantPermission method not found in contract');
-                    permissionStatus.textContent = 'grantPermission method not found in contract';
-                }
-            } catch (error) {
-                console.error(error);
-                permissionStatus.textContent = 'An error occurred. Check console for details.';
-            }
+        if (contract.methods.grantPermission) {
+            await contract.methods.grantPermission(fileIndex, userAddress).send({ from: account });
+            permissionStatus.textContent = 'Permission granted successfully!';
+        } else {
+            console.error('grantPermission method not found in contract');
+            permissionStatus.textContent = 'grantPermission method not found in contract';
         }
+    } catch (error) {
+        console.error(error);
+        permissionStatus.textContent = 'An error occurred. Check console for details.';
+    }
+}
 
-        // Initialize web3 and attach the event listener
-        window.onload = async function () {
-            document.getElementById('connectButton').onclick = connectWeb3;
-            document.getElementById('uploadButton').onclick = uploadFile;
-            document.getElementById('grantPermissionButton').onclick = grantPermission;
-        };
+// Initialize web3 and attach the event listener
+window.onload = async function () {
+    document.getElementById('connectButton').onclick = connectWeb3;
+    document.getElementById('uploadButton').onclick = uploadFile;
+    document.getElementById('grantPermissionButton').onclick = grantPermission;
+};
