@@ -251,6 +251,8 @@ async function connectWeb3() {
                 console.log('Connected to Sepolia Testnet');
                 contract = new web3.eth.Contract(contractABI, contractAddress);
                 console.log('Contract initialized:', contract);
+                // Fetch and display uploaded files
+                await fetchUploadedFiles();
             } else {
                 alert('Please connect to the Sepolia Testnet');
             }
