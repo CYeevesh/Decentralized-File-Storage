@@ -408,6 +408,7 @@
 
         // Initialize web3 and attach the event listener
         window.onload = async function () {
+		await fetchUploadedFiles();
             document.getElementById('connectButton').onclick = connectWeb3;
             document.getElementById('uploadButton').onclick = uploadFile;
             document.getElementById('grantPermissionButton').onclick = grantPermission;
