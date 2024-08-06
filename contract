@@ -40,7 +40,7 @@ contract DecentralizedFileStorage {
         newFile.hash = _hash;
         newFile.owner = msg.sender;
         newFile.encryptedKey = _encryptedKey;
-        emit FileUploaded(msg.sender, _hash, _encryptedKey);
+        emit FileUploaded(msg.sender, _hash, _encryptedKey);// Emit the FileUploaded event
     }
 
     /**
@@ -103,35 +103,21 @@ contract DecentralizedFileStorage {
         return file.permissions[msg.sender];
     }
 
+    // Function to get all files uploaded by a user
+    function getAllUserFiles(address _user) public view returns (FileInfo[] memory) {
+        uint256 fileCount = userFiles[_user].length;
 
-    /**
-     * @dev Get all files a user has access to
-     * @param user The address of the user
-     * @return accessibleFiles An array of FileInfo structs containing the files the user can access
-     */
-    function getAllUserFiles(address user) public view returns (FileInfo[] memory) {
-        uint count = 0;
+        // Create an array of FileInfo structs to store file information without the permissions mapping
+        FileInfo[] memory files = new FileInfo[](fileCount);
 
-        // Count how many files the user has permission to view
-        for (uint i = 0; i < userFiles[user].length; i++) {
-            if (hasPermission(user, i)) {
-                count++;
-            }
+        // Loop through all files uploaded by the user
+        for (uint256 i = 0; i < fileCount; i++) {
+            File storage userFile = userFiles[_user][i];
+            files[i] = FileInfo(userFile.hash, userFile.owner, userFile.encryptedKey);
         }
 
-        // Create an array to store the file info for files the user can access
-        FileInfo[] memory accessibleFiles = new FileInfo[](count);
-        uint j = 0;
-        
-        // Populate the accessibleFiles array with files the user can access
-        for (uint i = 0; i < userFiles[user].length; i++) {
-            if (hasPermission(user, i)) {
-                File storage file = userFiles[user][i];
-                accessibleFiles[j] = FileInfo(file.hash, file.owner, file.encryptedKey);
-                j++;
-            }
-        }
-        return accessibleFiles;
+        // Return the array of FileInfo structs
+        return files;
     }
 
     /**
