@@ -288,6 +288,7 @@
                 // Fetch and display uploaded files
                 console.log('Fetching uploaded files...');
                 await fetchUploadedFiles();
+		await fetchSharedFiles();
             }
         } catch (error) {
             console.error('User denied account access or there is an error', error);
@@ -379,6 +380,26 @@
                 console.error('Error fetching uploaded files:', error);
             }
         }
+
+async function fetchSharedFiles() {
+    try {
+        const sharedFiles = await contract.methods.getAllSharedFiles(account).call({ from: account });
+        console.log('Fetched shared files:', sharedFiles);
+
+        const tableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
+        tableBody.innerHTML = '';
+
+        sharedFiles.forEach((file, index) => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = index;
+            row.insertCell(1).textContent = file.hash;
+            row.insertCell(2).textContent = file.owner;
+            row.insertCell(3).textContent = file.encryptedKey;
+        });
+    } catch (error) {
+        console.error('Error fetching shared files:', error);
+    }
+}
 
         // Grant permission to another user to access a file
         async function grantPermission() {
