@@ -386,7 +386,7 @@ async function fetchSharedFiles() {
         const sharedFiles = await contract.methods.getAllSharedFiles(account).call({ from: account });
         console.log('Fetched shared files:', sharedFiles);
 
-        const tableBody = document.getElementById('sharedWithMeTable').getElementsByTagName('tbody')[0];
+        const tableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
         tableBody.innerHTML = '';
 
         sharedFiles.forEach((file, index) => {
