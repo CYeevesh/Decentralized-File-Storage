@@ -298,7 +298,8 @@
 
         const contractAddress = '0x9326A57a0291A6340Af14D9d997B952F1e209b4D';
 
-        // Web3 setup
+        
+// Web3 setup
 let web3;
 let contract;
 let account;
@@ -423,40 +424,31 @@ async function fetchSharedFiles() {
     filesTableBody.innerHTML = ''; // Clear previous entries
 
     try {
-        console.log('Fetching files shared with account:', account);
-        const files = await contract.methods.getAllSharedFiles(account).call(); // Fetch files shared with your account
-        console.log('Fetched shared files:', files);
+        console.log('Calling getAllSharedFiles with account:', account);
+        const files = await contract.methods.getAllSharedFiles(account).call();
+        console.log('Fetched files:', files);
 
         if (files.length === 0) {
-            console.log('No shared files found.');
-            const row = filesTableBody.insertRow();
-            const cell = row.insertCell(0);
-            cell.colSpan = 4;
-            cell.textContent = 'No files have been shared with you.';
-        } else {
-            files.forEach((file, index) => {
-                const row = filesTableBody.insertRow();
-
-                const cellIndex = row.insertCell(0);
-                const cellHash = row.insertCell(1);
-                const cellOwner = row.insertCell(2);
-                const cellKey = row.insertCell(3);
-
-                cellIndex.textContent = index + 1;
-                cellHash.textContent = file.hash;
-                cellOwner.textContent = file.owner;
-                cellKey.textContent = file.encryptedKey;
-            });
+            console.log('No files found for this user.');
         }
+
+        files.forEach((file, index) => {
+            const row = filesTableBody.insertRow();
+
+            const cellIndex = row.insertCell(0);
+            const cellHash = row.insertCell(1);
+            const cellOwner = row.insertCell(2);
+            const cellKey = row.insertCell(3);
+
+            cellIndex.textContent = index;
+            cellHash.textContent = file.hash;
+            cellOwner.textContent = file.owner;
+            cellKey.textContent = file.encryptedKey;
+        });
     } catch (error) {
         console.error('Error fetching shared files:', error);
-        const row = filesTableBody.insertRow();
-        const cell = row.insertCell(0);
-        cell.colSpan = 4;
-        cell.textContent = 'Error fetching shared files.';
     }
 }
-
 
 // Grant permission to another user to access a file
 async function grantPermission() {
