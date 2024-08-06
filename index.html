@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decentralized File Storage</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <script defer src="app.js"></script>
+    <script src="app.js"></script>
 </head>
 <body>
     <h1>Decentralized File Storage</h1>
     <button id="connectButton">Connect MetaMask</button>
+    <p id="status"></p>
 
     <h2>Upload File</h2>
     <input type="file" id="fileInput">
     <input type="text" id="encryptedKey" placeholder="Enter encrypted key">
-    <button id="uploadButton">Upload</button>
-    <p id="status"></p>
+    <button id="uploadButton">Upload File</button>
 
     <h2>Grant Permission</h2>
     <input type="number" id="fileIndex" placeholder="File Index">
@@ -23,8 +23,8 @@
     <button id="grantPermissionButton">Grant Permission</button>
     <p id="permissionStatus"></p>
 
-    <h2>Uploaded Files</h2>
-    <table id="filesTable">
+    <h2>Your Uploaded Files</h2>
+    <table id="filesTable" border="1">
         <thead>
             <tr>
                 <th>Index</th>
@@ -33,7 +33,6 @@
             </tr>
         </thead>
         <tbody>
-            <!-- File entries will be inserted here -->
         </tbody>
     </table>
 </body>
