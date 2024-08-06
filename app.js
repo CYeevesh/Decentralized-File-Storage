@@ -243,8 +243,10 @@ async function connectWeb3() {
             
             const networkId = await web3.eth.net.getId();
             console.log(`Connected Network ID: ${networkId}`);
+            // Verify if the network is Sepolia Testnet
             if (networkId !== 11155111) {
                 alert('Please connect to the Sepolia Testnet');
+                console.log('Currently connected to Network ID:', networkId);
             } else {
                 // Fetch and display uploaded files
                 console.log('Fetching uploaded files...');
