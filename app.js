@@ -381,7 +381,7 @@
             }
         }
 
-async function fetchSharedFiles() {
+async function fetchSharedFiles_old() {
     try {
         const sharedFiles = await contract.methods.getAllSharedFiles(account).call({ from: account });
         console.log('Fetched shared files:', sharedFiles);
@@ -400,6 +400,35 @@ async function fetchSharedFiles() {
         console.error('Error fetching shared files:', error);
     }
 }
+
+async function fetchSharedFiles() {
+            const filesTableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
+            filesTableBody.innerHTML = ''; // Clear previous entries
+
+            try {
+                console.log('Calling getAllSharedFiles with account:', account);
+                const files = await contract.methods.getAllSharedFiles(account).call();
+                console.log('Fetched files:', files);
+
+                if (files.length === 0) {
+                    console.log('No files found for this user.');
+                }
+
+                files.forEach((file, index) => {
+                    const row = filesTableBody.insertRow();
+
+                    const cellIndex = row.insertCell(0);
+                    const cellHash = row.insertCell(1);
+                    const cellKey = row.insertCell(2);
+
+                    cellIndex.textContent = index;
+                    cellHash.textContent = file.hash;
+                    cellKey.textContent = file.encryptedKey;
+                });
+            } catch (error) {
+                console.error('Error fetching uploaded files:', error);
+            }
+        }
 
         // Grant permission to another user to access a file
         async function grantPermission() {
