@@ -423,12 +423,12 @@ async function fetchSharedFiles() {
     filesTableBody.innerHTML = ''; // Clear previous entries
 
     try {
-        console.log('Calling getAllSharedFiles with account:', account);
+        console.log('Fetching files shared with account:', account);
         const files = await contract.methods.getAllSharedFiles(account).call(); // Fetch files shared with your account
-        console.log('Fetched files:', files);
+        console.log('Fetched shared files:', files);
 
         if (files.length === 0) {
-            console.log('No files found for this user.');
+            console.log('No shared files found.');
             const row = filesTableBody.insertRow();
             const cell = row.insertCell(0);
             cell.colSpan = 4;
@@ -453,9 +453,10 @@ async function fetchSharedFiles() {
         const row = filesTableBody.insertRow();
         const cell = row.insertCell(0);
         cell.colSpan = 4;
-        cell.textContent = 'Error fetching files.';
+        cell.textContent = 'Error fetching shared files.';
     }
 }
+
 
 // Grant permission to another user to access a file
 async function grantPermission() {
