@@ -324,8 +324,6 @@ async function connectWeb3() {
                 // Fetch and display uploaded and shared files
                 console.log('Fetching uploaded files...');
                 await fetchUploadedFiles();
-                console.log('Fetching shared files...');
-                await fetchSharedFiles();
             }
         } catch (error) {
             console.error('User denied account access or there is an error', error);
@@ -415,38 +413,6 @@ async function fetchUploadedFiles() {
         });
     } catch (error) {
         console.error('Error fetching uploaded files:', error);
-    }
-}
-
-// Fetch and display the shared files for the user
-async function fetchSharedFiles() {
-    const filesTableBody = document.getElementById('sharedFilesTable').getElementsByTagName('tbody')[0];
-    filesTableBody.innerHTML = ''; // Clear previous entries
-
-    try {
-        console.log('Calling getAllSharedFiles with account:', account);
-        const files = await contract.methods.getAllSharedFiles(account).call();
-        console.log('Fetched files:', files);
-
-        if (files.length === 0) {
-            console.log('No files found for this user.');
-        }
-
-        files.forEach((file, index) => {
-            const row = filesTableBody.insertRow();
-
-            const cellIndex = row.insertCell(0);
-            const cellHash = row.insertCell(1);
-            const cellOwner = row.insertCell(2);
-            const cellKey = row.insertCell(3);
-
-            cellIndex.textContent = index;
-            cellHash.textContent = file.hash;
-            cellOwner.textContent = file.owner;
-            cellKey.textContent = file.encryptedKey;
-        });
-    } catch (error) {
-        console.error('Error fetching shared files:', error);
     }
 }
 
