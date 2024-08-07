@@ -8,6 +8,7 @@ contract DecentralizedFileStorage {
         address owner;        // Address of the file owner
         string encryptedKey;  // Encrypted symmetric key for file access
         mapping(address => bool) permissions; // Mapping of addresses to boolean indicating if they have access
+        address[] permissionedAddresses; // Array of addresses with permissions
     }
 
     // Struct to return simplified file information without permissions mapping
@@ -15,6 +16,14 @@ contract DecentralizedFileStorage {
         string hash;          // IPFS hash of the file
         address owner;        // Address of the file owner
         string encryptedKey;  // Encrypted symmetric key for file access
+    }
+
+    // Struct to store shared file information along with user's address
+    struct SharedFileInfo {
+        string hash;
+        address owner;
+        string encryptedKey;
+        address sharedWith;
     }
 
     // Mapping of user address to their list of uploaded files
@@ -40,7 +49,7 @@ contract DecentralizedFileStorage {
         newFile.hash = _hash;
         newFile.owner = msg.sender;
         newFile.encryptedKey = _encryptedKey;
-        emit FileUploaded(msg.sender, _hash, _encryptedKey);// Emit the FileUploaded event
+        emit FileUploaded(msg.sender, _hash, _encryptedKey); // Emit the FileUploaded event
     }
 
     /**
@@ -59,6 +68,9 @@ contract DecentralizedFileStorage {
         require(file.owner == msg.sender, "Only the owner can grant permission");
 
         // Grant permission to the specified user
+        if (!file.permissions[user]) {
+            file.permissionedAddresses.push(user); // Add to permissionedAddresses array
+        }
         file.permissions[user] = true;
         emit PermissionGranted(msg.sender, file.hash, user);
     }
@@ -79,6 +91,16 @@ contract DecentralizedFileStorage {
         require(file.owner == msg.sender, "Only the owner can revoke permission");
 
         // Revoke permission from the specified user
+        if (file.permissions[user]) {
+            // Find and remove the user from the permissionedAddresses array
+            for (uint i = 0; i < file.permissionedAddresses.length; i++) {
+                if (file.permissionedAddresses[i] == user) {
+                    file.permissionedAddresses[i] = file.permissionedAddresses[file.permissionedAddresses.length - 1];
+                    file.permissionedAddresses.pop();
+                    break;
+                }
+            }
+        }
         file.permissions[user] = false;
         emit PermissionRevoked(msg.sender, file.hash, user);
     }
@@ -149,5 +171,43 @@ contract DecentralizedFileStorage {
         }
         return sharedFiles;
     }
-    
+
+    /**
+     * @dev Get all users with whom the caller has shared files
+     * @return sharedFileInfos An array of SharedFileInfo structs containing the files and the users they have been shared with
+     */
+    function getAllUsersWithSharedFiles() public view returns (SharedFileInfo[] memory) {
+        uint count = 0;
+
+        // Count how many shared file entries there are
+        for (uint i = 0; i < userFiles[msg.sender].length; i++) {
+            File storage file = userFiles[msg.sender][i];
+            for (uint j = 0; j < file.permissionedAddresses.length; j++) {
+                if (file.permissions[file.permissionedAddresses[j]]) {
+                    count++;
+                }
+            }
+        }
+
+        // Create an array to store the shared file info
+        SharedFileInfo[] memory sharedFileInfos = new SharedFileInfo[](count);
+        uint k = 0;
+
+        // Populate the sharedFileInfos array with shared file information
+        for (uint i = 0; i < userFiles[msg.sender].length; i++) {
+            File storage file = userFiles[msg.sender][i];
+            for (uint j = 0; j < file.permissionedAddresses.length; j++) {
+                if (file.permissions[file.permissionedAddresses[j]]) {
+                    sharedFileInfos[k] = SharedFileInfo(
+                        file.hash,
+                        file.owner,
+                        file.encryptedKey,
+                        file.permissionedAddresses[j]
+                    );
+                    k++;
+                }
+            }
+        }
+        return sharedFileInfos;
+    }
 }
