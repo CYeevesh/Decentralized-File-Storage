@@ -324,128 +324,100 @@ async function connectWeb3() {
                 // Fetch and display uploaded and shared files
                 console.log('Fetching uploaded files...');
                 await fetchUploadedFiles();
+                console.log('Fetching shared files...');
+                await fetchSharedFiles();
             }
         } catch (error) {
             console.error('User denied account access or there is an error', error);
-            alert('Please connect your MetaMask wallet.');
+            alert('Please connect your MetaMask account.');
         }
     } else {
-        alert('Please install MetaMask!');
+        alert('MetaMask is not detected. Please install MetaMask.');
     }
 }
 
-// Upload file to Pinata and store the hash in the smart contract
-async function uploadFile() {
-    const fileInput = document.getElementById('fileInput');
-    const encryptedKey = document.getElementById('encryptedKey').value;
-    const status = document.getElementById('status');
-    const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIyYjdjM2Q2YS1hYWQ1LTRhZmYtODEzNi1hZTA5OGRlNGFjMjAiLCJlbWFpbCI6InllY293bGVzc3VyQHVtYWlsLnV0bS5hYy5tdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIxMWY5YzlkOTg3NmJlNDVjNDQzNiIsInNjb3BlZEtleVNlY3JldCI6IjA0ZjY1ZWMyNDc3NTdiZjA3NjIzNzk1OGMyN2QxOTQ4NmNmOGJmZWFjN2Y0OWJmYzQ4ZTkwNDk1YmExMDcyNzMiLCJleHAiOjE3NTQ0NTkxMzR9.D9CCodBH7YBGRCh_DOJHQQM8y8wrqKYyMpUi2BwTaLY'; // Replace with your Pinata JWT token
-
-    if (fileInput.files.length === 0) {
-        status.textContent = 'Please select a file.';
-        return;
-    }
-
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        // Upload file to Pinata
-        status.textContent = 'Uploading to Pinata...';
-
-        const result = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${jwtToken}`, 
-            },
-            body: formData
-        });
-
-        const response = await result.json();
-        const ipfsHash = response.IpfsHash;
-        status.textContent = `File uploaded to IPFS with hash: ${ipfsHash}`;
-
-        // Store the IPFS hash in the smart contract
-        status.textContent = 'Storing IPFS hash in the smart contract...';
-
-        if (contract.methods.uploadFile) {
-            await contract.methods.uploadFile(ipfsHash, encryptedKey).send({ from: account });
-            status.textContent = 'IPFS hash stored successfully on the blockchain!';
-            
-            // Refresh the file list after uploading
-            console.log('Fetching uploaded files after upload...');
-            await fetchUploadedFiles();
-        } else {
-            console.error('uploadFile method not found in contract');
-            status.textContent = 'uploadFile method not found in contract';
-        }
-    } catch (error) {
-        console.error(error);
-        status.textContent = 'An error occurred. Check console for details.';
-    }
-}
-
-// Fetch and display the uploaded files for the user
+// Fetch and display uploaded files
 async function fetchUploadedFiles() {
-    const filesTableBody = document.getElementById('filesTable').getElementsByTagName('tbody')[0];
-    filesTableBody.innerHTML = ''; // Clear previous entries
-
     try {
-        console.log('Calling getAllUserFiles with account:', account);
         const files = await contract.methods.getAllUserFiles(account).call();
-        console.log('Fetched files:', files);
+        const filesTable = document.getElementById('filesTable').getElementsByTagName('tbody')[0];
 
-        if (files.length === 0) {
-            console.log('No files found for this user.');
-        }
+        filesTable.innerHTML = '';
 
         files.forEach((file, index) => {
-            const row = filesTableBody.insertRow();
+            const row = filesTable.insertRow();
+            const indexCell = row.insertCell(0);
+            const hashCell = row.insertCell(1);
+            const encryptedKeyCell = row.insertCell(2);
 
-            const cellIndex = row.insertCell(0);
-            const cellHash = row.insertCell(1);
-            const cellKey = row.insertCell(2);
-
-            cellIndex.textContent = index;
-            cellHash.textContent = file.hash;
-            cellKey.textContent = file.encryptedKey;
+            indexCell.textContent = index + 1;
+            hashCell.textContent = file.hash;
+            encryptedKeyCell.textContent = file.encryptedKey;
         });
     } catch (error) {
         console.error('Error fetching uploaded files:', error);
     }
 }
 
-// Grant permission to another user to access a file
-async function grantPermission() {
-    const fileIndex = document.getElementById('fileIndex').value;
-    const userAddress = document.getElementById('userAddress').value;
-    const permissionStatus = document.getElementById('permissionStatus');
-
-    if (!fileIndex || !userAddress) {
-        permissionStatus.textContent = 'Please provide both file index and user address.';
-        return;
-    }
-
+// Fetch and display shared files
+async function fetchSharedFiles() {
     try {
-        permissionStatus.textContent = 'Granting permission...';
+        const files = await contract.methods.getAllSharedFiles(account).call();
+        const sharedFilesTable = document.getElementById('usersSharedFilesTable').getElementsByTagName('tbody')[0];
 
-        if (contract.methods.grantPermission) {
-            await contract.methods.grantPermission(fileIndex, userAddress).send({ from: account });
-            permissionStatus.textContent = 'Permission granted successfully!';
-        } else {
-            console.error('grantPermission method not found in contract');
-            permissionStatus.textContent = 'grantPermission method not found in contract';
-        }
+        sharedFilesTable.innerHTML = '';
+
+        files.forEach((file, index) => {
+            const row = sharedFilesTable.insertRow();
+            const indexCell = row.insertCell(0);
+            const hashCell = row.insertCell(1);
+            const ownerCell = row.insertCell(2);
+            const sharedWithCell = row.insertCell(3);
+            const encryptedKeyCell = row.insertCell(4);
+
+            indexCell.textContent = index + 1;
+            hashCell.textContent = file.hash;
+            ownerCell.textContent = file.owner;
+            sharedWithCell.textContent = file.sharedWith;
+            encryptedKeyCell.textContent = file.encryptedKey;
+        });
     } catch (error) {
-        console.error(error);
-        permissionStatus.textContent = 'An error occurred. Check console for details.';
+        console.error('Error fetching shared files:', error);
     }
 }
 
-// Initialize web3 and attach the event listener
-window.onload = async function () {
-    document.getElementById('connectButton').onclick = connectWeb3;
-    document.getElementById('uploadButton').onclick = uploadFile;
-    document.getElementById('grantPermissionButton').onclick = grantPermission;
+// Event listeners for buttons
+document.getElementById('connectButton').addEventListener('click', connectWeb3);
+document.getElementById('uploadButton').addEventListener('click', async () => {
+    const fileInput = document.getElementById('fileInput');
+    const encryptedKey = document.getElementById('encryptedKey').value;
+
+    if (fileInput.files.length > 0 && encryptedKey) {
+        const file = fileInput.files[0];
+        // You need to add your logic to upload the file to IPFS and get the hash
+
+        const ipfsHash = 'your_ipfs_hash'; // Replace with actual IPFS hash
+        await contract.methods.uploadFile(ipfsHash, encryptedKey).send({ from: account });
+        await fetchUploadedFiles();
+    } else {
+        alert('Please select a file and enter an encrypted key.');
+    }
+});
+
+document.getElementById('grantPermissionButton').addEventListener('click', async () => {
+    const fileIndex = document.getElementById('fileIndex').value;
+    const userAddress = document.getElementById('userAddress').value;
+
+    if (fileIndex && userAddress) {
+        await contract.methods.grantPermission(fileIndex, userAddress).send({ from: account });
+        document.getElementById('permissionStatus').textContent = 'Permission granted successfully';
+    } else {
+        alert('Please enter a file index and user address.');
+    }
+});
+
+// Call fetchSharedFiles on window load
+window.onload = async () => {
+    await connectWeb3();
+    await fetchSharedFiles();
 };
